@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import fitz
 import argparse
+import shutil,os
 nltk.download('stopwords')
 from nltk.corpus import stopwords
 nltk.download('punkt')
@@ -37,7 +38,7 @@ def tokenization(text):
 def prediction(text):
   model=tf.keras.models.load_model('model.hdf5')
   category=model.predict([text])
-  category=np.argmax
+  category=np.argmax(category)
   return category
 
 def read_file(pdf_dir):
@@ -56,6 +57,8 @@ def read_file(pdf_dir):
       padded_data=tokenization(clean_text)
       category=prediction(padded_data)
       category=class_labels[category]
+      os.makedirs(category, exist_ok=True)
+      shutil.move(pdf_path,category)
       data=data.append({'filename':filename,'category':category},ignore_index=True)
 
   csv_file='categorized_resumes.csv'
