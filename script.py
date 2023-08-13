@@ -6,12 +6,15 @@ import gensim
 import pandas as pd
 import numpy as np
 import fitz
+import argparse
 nltk.download('stopwords')
 from nltk.corpus import stopwords
 nltk.download('punkt')
 stopwords=stopwords.words('english')
 
-
+class_names=['HR', 'DESIGNER', 'INFORMATION-TECHNOLOGY', 'TEACHER', 'ADVOCATE', 'BUSINESS-DEVELOPMENT', 'HEALTHCARE', 'FITNESS',
+          'AGRICULTURE', 'BPO', 'SALES', 'CONSULTANT', 'DIGITAL-MEDIA', 'AUTOMOBILE', 'CHEF', 'FINANCE', 'APPAREL', 
+            'ENGINEERING', 'ACCOUNTANT', 'CONSTRUCTION', 'PUBLIC-RELATIONS', 'BANKING', 'ARTS','AVIATION']
 def clean_text(text):
     texts=text.lower()
     nltk.tokenize.word_tokenize(texts)
@@ -19,6 +22,7 @@ def clean_text(text):
     for word in gensim.utils.simple_preprocess(texts):
       if word not in stopwords and len(word)>3:
         result.append(word)
+    result= " ".join(result)
     return result
 
 
@@ -26,13 +30,14 @@ def tokenization(text):
   with open('tokenizer.json', 'r') as json_file:
     tokenizer_json = json_file.read()
     saved_tokenizer = tf.keras.preprocessing.text.tokenizer_from_json(tokenizer_json)
-  test_sequence=saved_tokenizer.texts_to_sequences(text)
+  test_sequence=saved_tokenizer.texts_to_sequences([text])
   padded_data=pad_sequences(test_sequence,maxlen=1800,padding='post')
   return padded_data
 
 def prediction(text):
   model=tf.keras.models.load_model('model.hdf5')
-  category=model.predict(text)
+  category=model.predict([text])
+  category=np.argmax
   return category
 
 def read_file(pdf_dir):
@@ -50,6 +55,7 @@ def read_file(pdf_dir):
       clean_text=clean_text(pdf_text)
       padded_data=tokenization(clean_text)
       category=prediction(padded_data)
+      category=class_labels[category]
       data=data.append({'filename':filename,'category':category},ignore_index=True)
 
   csv_file='categorized_resumes.csv'
