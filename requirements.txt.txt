@@ -1,0 +1,6 @@
+tensorflow
+gensim
+pandas
+nltk
+numpy
+PyMuPDF
